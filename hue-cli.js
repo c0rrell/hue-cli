@@ -103,21 +103,21 @@ while ((option = parser.getopt()) !== undefined) {
     case "j":
       json = true;
       break;
-    case "u": // check for updates
+    case "u":
       require("latest").checkupdate(pkg, function (ret, msg) {
         console.log(msg);
         process.exit(ret);
       });
-      return;
+      break;
     case "v":
       console.log(pkg.version);
       process.exit(0);
     default:
       console.error(usage());
       process.exit(1);
-      break;
   }
 }
+
 var args = process.argv.slice(parser.optind());
 
 try {
