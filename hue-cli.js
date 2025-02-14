@@ -9,7 +9,7 @@
 import fs from "fs";
 import path from "path";
 import pkg from "./package.json" with { type: "json" };
-import csscolors from "css-color-names";
+import csscolors from "css-color-names" with { type: "json" };
 import deepmerge from "deepmerge";
 import getopt from "posix-getopt";
 import Hue from "hue.js";
