@@ -6,19 +6,19 @@
  * Date: 3/14/13
  * License: MIT
  */
-var fs = require("fs");
-var path = require("path");
+import fs from require("fs");
+import path from require("path");
 
-var csscolors = require("css-color-names");
-var deepmerge = require("deepmerge");
-var getopt = require("posix-getopt");
-var Hue = require("hue.js");
-var sprintf = require("extsprintf").sprintf;
+import csscolors from require("css-color-names");
+import deepmerge from require("deepmerge");
+import getopt from require("posix-getopt");
+import Hue from require("hue.js");
+import sprintf from require("extsprintf").sprintf;
 function printf() {
   console.log(sprintf.apply(this, arguments));
 }
 
-var package = require("./package.json");
+import pkg from require("./package.json");
 
 var homedir =
   process.env.HOME || process.env.HOMEPATH || process.env.USERPROFILE;
@@ -104,13 +104,13 @@ while ((option = parser.getopt()) !== undefined) {
       json = true;
       break;
     case "u": // check for updates
-      require("latest").checkupdate(package, function (ret, msg) {
+      require("latest").checkupdate(pkg, function (ret, msg) {
         console.log(msg);
         process.exit(ret);
       });
       return;
     case "v":
-      console.log(package.version);
+      console.log(pkg.version);
       process.exit(0);
     default:
       console.error(usage());
