@@ -8,7 +8,7 @@
  */
 import fs from "fs";
 import path from "path";
-import pkg from "./package.json" assert { type: "json" };
+import pkg from "./package.json" with { type: "json" };
 import csscolors from "css-color-names";
 import deepmerge from "deepmerge";
 import getopt from "posix-getopt";
