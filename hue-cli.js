@@ -6,19 +6,19 @@
  * Date: 3/14/13
  * License: MIT
  */
-import fs from require("fs");
-import path from require("path");
+import fs from "fs";
+import path from "path";
 
-import csscolors from require("css-color-names");
-import deepmerge from require("deepmerge");
-import getopt from require("posix-getopt");
-import Hue from require("hue.js");
-import sprintf from require("extsprintf").sprintf;
+import csscolors from "css-color-names";
+import deepmerge from "deepmerge";
+import getopt from "posix-getopt";
+import Hue from "hue.js";
+import { sprintf } from "extsprintf";
 function printf() {
   console.log(sprintf.apply(this, arguments));
 }
 
-import pkg from require("./package.json");
+import pkg from "./package.json";
 
 var homedir =
   process.env.HOME || process.env.HOMEPATH || process.env.USERPROFILE;
