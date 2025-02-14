@@ -52,7 +52,7 @@ function usage() {
     "  hue lights 4,5 clear        # clear any effects on lights 4 and 5",
     "  hue lights 1 state          # set the state on light 1 as passed in as JSON over stdin",
     "  hue rename 1 light-name     # set light 1's name to the given string",
-    "  hue lights reset            # reset all lamps to default (on, as if the bulb was just flipped on)",
+    "  hue lights reset            # Reset lamps to default (on, as if just switched)",
     "  hue lights 1,2 reset        # reset just bulbs 1 and 2",
     "  hue help                    # this message",
     "  hue register                # register this app to hue",
@@ -124,7 +124,7 @@ try {
   var readConfig = JSON.parse(fs.readFileSync(file, "utf-8"));
 } catch (e) {
   if (configfile) {
-    console.error("failed to read config %s: %s", configfile, e.message);
+    console.error(`failed to read config ${configfile}: ${e.message}`);
     process.exit(1);
   }
 }
@@ -161,7 +161,7 @@ switch (args[0]) {
         if (json) return console.log(JSON.stringify(lights, null, 2));
         //printf('%4s %s', 'ID', 'NAME');
         keys.forEach(function (key) {
-          printf("%4d %s", key, lights[key].name);
+          printf(`${key}, ${lights[key].name}`);
         });
         return;
       }
@@ -215,20 +215,10 @@ switch (args[0]) {
             if (json) return console.log(JSON.stringify(err || data, null, 2));
             if (err)
               return printf(
-                "%4d %-5s %s (type %d)",
-                id,
-                "error",
-                err.description,
-                err.type
-              );
+                `${id} "error" ${err.description} (type ${err.type})`);
 
             printf(
-              "%4d %-5s %-7d %s",
-              id,
-              data.state.on ? "on" : "off",
-              data.state.bri,
-              data.name
-            );
+              `${id} ${data.state.on ? "on" : "off"} ${data.state.bri} ${data.name}`);
           });
         });
         return;
@@ -289,12 +279,7 @@ switch (args[0]) {
                   if (json)
                     return console.log(JSON.stringify(err || data, null, 2));
                   return printf(
-                    "%4d %-5s %s (type %d)",
-                    id,
-                    "error",
-                    err.description,
-                    err.type
-                  );
+                    `${id} "error" ${err.description} (type ${err.type})`);
                 }
                 var bri = data.state.bri;
                 var oldbri = bri;
@@ -318,13 +303,8 @@ switch (args[0]) {
                     return console.log(JSON.stringify(err || data, null, 2));
                   if (err)
                     return printf(
-                      "%4d %-5s %s (type %d)",
-                      id,
-                      "error",
-                      err.description,
-                      err.type
-                    );
-                  console.log("light %d brightness %d -> %s", id, oldbri, bri);
+                      `${id} "error" ${err.description} (type ${err.type})`);
+                  console.log(`light ${id} brightness ${oldbri} -> ${bri}`);
                 });
               });
             });
@@ -341,11 +321,14 @@ switch (args[0]) {
       }
 
       function callback(id) {
-        return function (err, data) {
-          if (json) return console.log(JSON.stringify(err || data, null, 2));
-          if (err)
-            return console.error("light %d failed: %s", id, err.description);
-          console.log("light %d success", id);
+        return function (err) {
+          client.lights(function (err, lights) {
+            if (err) throw err;
+            let lightName = lights[id] ? lights[id].name : `light ${id}`;
+            if (json) return console.log(JSON.stringify(err || null, 2));
+            if (err) return console.error(`${lightName} failed: ${err.description}`);
+            console.log(`${lightName} has been updated successfully!`);
+          });
         };
       }
     });
@@ -354,7 +337,7 @@ switch (args[0]) {
     // Check for existing config
     var existingconfig = statPath(configfile);
     if (existingconfig && existingconfig.isFile()) {
-      console.log("A config file already exists at %s", configfile);
+      console.log(`A config file already exists at ${configfile}`);
       console.log("please remove it before attempting to register a new hub");
       process.exit(1);
     }
@@ -363,7 +346,7 @@ switch (args[0]) {
     console.log("please go and press the link button on your base station");
     client.register(function (err, resp) {
       if (err) {
-        console.error("failed to pair to Hue Base Station %s", config.host);
+        console.error(`failed to pair to Hue Base Station ${config.host}`);
         throw err;
       }
 
@@ -374,7 +357,7 @@ switch (args[0]) {
       // writing config file
       var s = JSON.stringify(config, null, 2);
       fs.writeFileSync(configfile, s + "\n");
-      console.log("config file written to `%s`", configfile);
+      console.log(`config file written to ${configfile}`);
     });
     break;
   case "alias":
@@ -386,7 +369,7 @@ switch (args[0]) {
       // writing config file
       var s = JSON.stringify(config, null, 2);
       fs.writeFileSync(configfile, s + "\n");
-      console.log("config in `%s` updated", configfile);
+      console.log(`config in ${configfile} updated`);
     } else {
       console.error("wrong usage of alias, run `hue help`");
       process.exit(1);
@@ -395,19 +378,23 @@ switch (args[0]) {
   case "search": // search for base stations
     Hue.discover(function (stations) {
       if (json) return console.log(JSON.stringify(stations, null, 2));
-      console.log("%d stations found\n", stations.length);
-      stations.forEach(function (name, i) {
-        console.log("%d: %s", i + 1, name);
+      if (stations.length === 1) {
+        console.log(`1 station found: ${stations[0]}`);
+      } else {
+        console.log(`${stations.length} stations found: \n`);
+        stations.forEach(function (name, i) {
+        console.log(`${i + 1}: ${name}`);
       });
+      }
     });
     break;
   case "rename": // rename light
     client = getclient();
     client.rename(args[1], args[2], function (reply) {
       if (reply) {
-        console.log("problem renaming light: " + reply.description);
+        console.log(`problem renaming light: ${reply.description}`);
       } else {
-        console.log("light %d renamed", args[1]);
+        console.log(`light ${args[1]} renamed`);
       }
     });
     break;
