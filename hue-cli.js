@@ -8,17 +8,16 @@
  */
 import fs from "fs";
 import path from "path";
-
+import pkg from "./package.json" assert { type: "json" };
 import csscolors from "css-color-names";
 import deepmerge from "deepmerge";
 import getopt from "posix-getopt";
 import Hue from "hue.js";
 import { sprintf } from "extsprintf";
+
 function printf() {
   console.log(sprintf.apply(this, arguments));
 }
-
-import pkg from "./package.json";
 
 var homedir =
   process.env.HOME || process.env.HOMEPATH || process.env.USERPROFILE;
