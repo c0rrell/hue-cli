@@ -166,7 +166,7 @@ switch (args[0]) {
         return;
       }
 
-      // handle shortucts like `lights off`, `lights all on`
+      // handle shortcuts like `lights off`, `lights all on`
       var l = args[1].split(",");
       switch (l[0]) {
         case "all":
@@ -304,7 +304,10 @@ switch (args[0]) {
                   if (err)
                     return printf(
                       `${id} "error" ${err.description} (type ${err.type})`);
-                  console.log(`light ${id} brightness ${oldbri} -> ${bri}`);
+                      client.lights(function (err, lights) {
+                      let lightName = lights[id] ? lights[id].name : `light ${id}`;
+                      console.log(`${lightName} brightness changed. ${oldbri} -> ${bri}`);
+                  });
                 });
               });
             });
@@ -325,9 +328,23 @@ switch (args[0]) {
           client.lights(function (err, lights) {
             if (err) throw err;
             let lightName = lights[id] ? lights[id].name : `light ${id}`;
+            let lightState = lights[id] ? lights[id].state : `light ${id}`;
             if (json) return console.log(JSON.stringify(err || null, 2));
             if (err) return console.error(`${lightName} failed: ${err.description}`);
-            console.log(`${lightName} has been updated successfully!`);
+            if(args[2] === "on" || args[2] === "off") {
+              console.log(`${lightName} was turned ${lightState.on ? "on" : "off"}`);
+            } else if (args[2] === "reset"){
+              console.log(`${lightName} reset to default state`);
+            } else if (args[2] === "colorloop") {
+              console.log(`${lightName} color loop started`);
+            } else if (args[2] === "alert") {
+              console.log(`${lightName} alert started`);
+            } else if (args[2] === "clear") {
+              console.log(`${lightName} effects cleared`);
+            } else {
+              console.log(`${lightName} color changed`);
+            }
+            
           });
         };
       }
@@ -343,7 +360,7 @@ switch (args[0]) {
     }
     // Attempt to pair with hue hub
     client = getclient();
-    console.log("please go and press the link button on your base station");
+    console.log("Please go and press the link button on your base station");
     client.register(function (err, resp) {
       if (err) {
         console.error(`failed to pair to Hue Base Station ${config.host}`);
@@ -437,7 +454,10 @@ function getlights(client, cb) {
       );
       process.exit(1);
     }
-    if (err) throw err;
+    if (err) { 
+      console.info(`Service unavailable. Please try again later.`);
+      process.exit(1);
+    }
     cb(lights);
   });
 }

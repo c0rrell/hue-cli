@@ -1,13 +1,8 @@
-hue(1)
-======
+# hue(1)
 
 A command line interface to [philips hue](http://meethue.com)
 
-**NOTE:** A more complete and updated implementation of a Hue Management CLI
-can be found here https://github.com/bahamas10/hueadm
-
-Installation
-------------
+## Installation
 
 First, install [Node.js](http://nodejs.org), then:
 
@@ -15,8 +10,7 @@ First, install [Node.js](http://nodejs.org), then:
 
 ...and the executable will be installed globally as `hue`
 
-Usage
------
+## Usage
 
     Usage: hue [-c config] [-H host] [--json] [command]
 
@@ -58,8 +52,7 @@ Usage
       -u, --updates          check for available updates
       -v, --version          print the version number and exit
 
-Example
--------
+## Example
 
 ### starting off
 
@@ -91,7 +84,7 @@ This app isn't registered yet, let's go ahead and do that
 ### listing lights
 
 All you had to do was press the button on your base station to register, cool
-right?  Let's re-run the lights command
+right? Let's re-run the lights command
 
     $ hue -H 10.0.1.218 lights
        1 Mike 1
@@ -148,7 +141,7 @@ And `-j` for json
 
 ### controlling the lights
 
-Let's actually mess with the lights now.  Let's turn on the light in my closet.
+Let's actually mess with the lights now. Let's turn on the light in my closet.
 
     $ hue lights 3 on
     light 3 success
@@ -164,7 +157,7 @@ What if we try to turn on a non-existent light?
     $ hue lights 99 on
     light 99 failed: resource, /lights/99/state, not available
 
-Cool, errors handled properly.  Let's see some more examples
+Cool, errors handled properly. Let's see some more examples
 
     $ hue lights off
     light 1 success
@@ -174,11 +167,11 @@ Cool, errors handled properly.  Let's see some more examples
 
 This is shorthand for
 
-    $ hue lights all off
+    hue lights all off
 
-Where `all` is a recognized keyword for all lights in the system.  You can also:
+Where `all` is a recognized keyword for all lights in the system. You can also:
 
-    $ hue lights off
+    hue lights off
 
 To quickly turn off all lights on the system
 
@@ -191,7 +184,7 @@ How about hex
     $ hue lights 4 ffffff
     light 4 success
 
-We just set the light in the hallway to pure white, hex `ffffff`.  Let's go crazy
+We just set the light in the hallway to pure white, hex `ffffff`. Let's go crazy
 and turn all of the lights in the house red (this is where we need the `all` keyword)
 
     $ hue lights all ff0000
@@ -200,7 +193,7 @@ and turn all of the lights in the house red (this is where we need the `all` key
     ...
 
 It's worth noting here that, because this tool is written in Node, all requests to the
-lights are done concurrently.  This means we don't have to wait for light 1 to finish
+lights are done concurrently. This means we don't have to wait for light 1 to finish
 before we instruct light 2 to change, nor wait for light 2 to finish before we instruct
 light 3 to change, and so on.
 
@@ -218,7 +211,7 @@ Last but not least, any CSS name is supported for colors
     light 1 success
 
 Light 1 is now yellow. The full list of colors is available here
-http://xahlee.info/js/css_color_names.html
+<http://xahlee.info/js/css_color_names.html>
 
 ### brightness
 
@@ -249,20 +242,19 @@ and clear all effects with
 
 ### debugging
 
-Last but not least, you can pass the state as JSON over stdin.  The possible
+Last but not least, you can pass the state as JSON over stdin. The possible
 values are found at [http://developers.meethue.com/1_lightsapi.html](http://developers.meethue.com/1_lightsapi.html)
 in section 1.6.
 
-    $ echo '{"bri": 240, "hue": 25500}' | hue lights 7 state
+    echo '{"bri": 240, "hue": 25500}' | hue lights 7 state
 
 The `state` keyword tells `hue` to read from stdin
 
-Config
-------
+## Config
 
 A config file will be created at `~/.hue.json` upon registration that looks like...
 
-``` json
+```json
 {
   "host": "1.2.3.4",
   "colors": {
@@ -272,18 +264,16 @@ A config file will be created at `~/.hue.json` upon registration that looks like
 }
 ```
 
-* `host`: the host to connect to (normally passed in as `-H`)
-* `colors`: a key-value pair of color aliases to their hex mapping, you can use these
-when changing the colors of a light
+- `host`: the host to connect to (normally passed in as `-H`)
+- `colors`: a key-value pair of color aliases to their hex mapping, you can use these
+  when changing the colors of a light
 
-Credits
--------
+## Credits
 
-* [Philips hue](http://meethue.com): I assume you know what this is by now
-* [hue.js](https://github.com/thatguydan/hue.js): Node.js hue client
-* [css-color-names](https://github.com/bahamas10/css-color-names): color aliases provided by this module
+- [Philips hue](http://meethue.com): I assume you know what this is by now
+- [hue.js](https://github.com/thatguydan/hue.js): Node.js hue client
+- [css-color-names](https://github.com/bahamas10/css-color-names): color aliases provided by this module
 
-License
--------
+## License
 
 MIT
