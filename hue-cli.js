@@ -281,15 +281,13 @@ switch (args[0]) {
 
           if ((match = s.match(/^([-+=])([0-9]+)(%?)$/))) {
             const op = match[1];
-            const num = match[2];
+            const num = parseInt(match[2], 10);
             const perc = match[3];
             l.forEach(function (id) {
               client.light(id, function (err, data) {
                 if (err) {
-                  if (json)
-                    return console.log(JSON.stringify(err || data, null, 2));
-                  return printf(
-                    `${id} "error" ${err.description} (type ${err.type})`);
+                  if (json) return console.log(JSON.stringify(err || data, null, 2));
+                  return printf(`${id} "error" ${err.description} (type ${err.type})`);
                 }
                 let bri = data.state.bri;
                 let oldbri = bri;
@@ -309,14 +307,11 @@ switch (args[0]) {
                 }
                 bri = Math.min(254, Math.max(1, bri));
                 client.state(id, { bri: bri }, function (err, data) {
-                  if (json)
-                    return console.log(JSON.stringify(err || data, null, 2));
-                  if (err)
-                    return printf(
-                      `${id} "error" ${err.description} (type ${err.type})`);
-                      client.lights(function (err, lights) {
-                      let lightName = lights[id] ? lights[id].name : `light ${id}`;
-                      console.log(`💡 ${lightName} Brightness Updated: ${oldbri} → ${bri}`);
+                  if (json) return console.log(JSON.stringify(err || data, null, 2));
+                  if (err) return printf(`${id} "error" ${err.description} (type ${err.type})`);
+                  client.lights(function (err, lights) {
+                    let lightName = lights[id] ? lights[id].name : `light ${id}`;
+                    console.log(`💡 ${lightName} Brightness Updated: ${oldbri} → ${bri}`);
                   });
                 });
               });
