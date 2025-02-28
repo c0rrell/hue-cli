@@ -19,10 +19,10 @@ function printf() {
   console.log(sprintf.apply(this, arguments));
 }
 
-var homedir =
+const homedir =
   process.env.HOME || process.env.HOMEPATH || process.env.USERPROFILE;
-var defaultconfigfile = path.join(homedir, ".hue.json");
-var app = "node-hue-cli";
+const defaultconfigfile = path.join(homedir, ".hue.json");
+const app = "node-hue-cli";
 
 /**
  * return the usage statement
@@ -74,7 +74,7 @@ function usage() {
 }
 
 // command line arguments
-var options = [
+const options = [
   "c:(config)",
   "h(help)",
   "H:(host)",
@@ -82,12 +82,12 @@ var options = [
   "u(updates)",
   "v(version)",
 ].join("");
-var parser = new getopt.BasicParser(options, process.argv);
+const parser = new getopt.BasicParser(options, process.argv);
 
-var option;
-var config = {};
-var configfile;
-var json = false;
+let option;
+let config = {};
+let configfile;
+let json = false;
 while ((option = parser.getopt()) !== undefined) {
   switch (option.option) {
     case "c":
@@ -103,9 +103,11 @@ while ((option = parser.getopt()) !== undefined) {
       json = true;
       break;
     case "u":
-      require("latest").checkupdate(pkg, function (ret, msg) {
-        console.log(msg);
+      import("latest").then(({ checkupdate }) => {
+        checkupdate(pkg, function (ret, msg) {
+          console.log(msg);
         process.exit(ret);
+        });
       });
       break;
     case "v":
@@ -117,19 +119,19 @@ while ((option = parser.getopt()) !== undefined) {
   }
 }
 
-var args = process.argv.slice(parser.optind());
+const args = process.argv.slice(parser.optind());
 
 try {
-  var file = configfile || defaultconfigfile;
-  var readConfig = JSON.parse(fs.readFileSync(file, "utf-8"));
+  let file = configfile || defaultconfigfile;
+  configfile = file;
+  const readConfig = JSON.parse(fs.readFileSync(file, "utf-8"));
+  config = deepmerge(readConfig, config);
 } catch (e) {
   if (configfile) {
     console.error(`failed to read config ${configfile}: ${e.message}`);
     process.exit(1);
   }
 }
-configfile = file;
-config = deepmerge(readConfig, config);
 
 // load in config colors if present
 if (config.colors) {
@@ -139,7 +141,7 @@ if (config.colors) {
 }
 
 // command switch
-var client, lights;
+let client, lights;
 switch (args[0]) {
   case "config": // get the config as json
     client = getclient();
@@ -156,7 +158,7 @@ switch (args[0]) {
     client = getclient();
     getlights(client, function (lights) {
       // if there are no lights specified, return the list of lights
-      var keys = Object.keys(lights);
+      const keys = Object.keys(lights);
       if (!args[1]) {
         if (json) return console.log(JSON.stringify(lights, null, 2));
         //printf('%4s %s', 'ID', 'NAME');
@@ -167,7 +169,7 @@ switch (args[0]) {
       }
 
       // handle shortcuts like `lights off`, `lights all on`
-      var l = args[1].split(",");
+      let l = args[1].split(",");
       switch (l[0]) {
         case "all":
           l = keys;
@@ -259,20 +261,28 @@ switch (args[0]) {
             );
           });
           break;
-        case "state": // read state from stdin
-          var data = JSON.parse(fs.readFileSync("/dev/stdin", "utf-8"));
-          l.forEach(function (id) {
-            client.state(id, data, callback(id));
-          });
+          case "state": // read state from stdin
+          try {
+            console.log("Reading state data from stdin...");
+            const data = JSON.parse(fs.readFileSync("/dev/stdin", "utf-8"));
+            console.log("State data read from stdin:", data);
+            l.forEach(function (id) {
+              console.log(`Setting state for light ${id} with data:`, data);
+              client.state(id, data, callback(id));
+            });
+          } catch (e) {
+            console.error(`Failed to read or parse state data from stdin: ${e.message}`);
+            process.exit(1);
+          }
           break;
         default: // hex, colors, or brightness
-          var s = args[2];
-          var match;
+          const s = args[2];
+          let match;
 
           if ((match = s.match(/^([-+=])([0-9]+)(%?)$/))) {
-            var op = match[1];
-            var num = match[2];
-            var perc = match[3];
+            const op = match[1];
+            const num = match[2];
+            const perc = match[3];
             l.forEach(function (id) {
               client.light(id, function (err, data) {
                 if (err) {
@@ -281,8 +291,8 @@ switch (args[0]) {
                   return printf(
                     `${id} "error" ${err.description} (type ${err.type})`);
                 }
-                var bri = data.state.bri;
-                var oldbri = bri;
+                let bri = data.state.bri;
+                let oldbri = bri;
                 switch (op) {
                   case "=":
                     if (perc) bri = Math.round(num * (254 / 100));
@@ -306,7 +316,7 @@ switch (args[0]) {
                       `${id} "error" ${err.description} (type ${err.type})`);
                       client.lights(function (err, lights) {
                       let lightName = lights[id] ? lights[id].name : `light ${id}`;
-                      console.log(`${lightName} brightness changed. ${oldbri} -> ${bri}`);
+                      console.log(`💡 ${lightName} Brightness Updated: ${oldbri} → ${bri}`);
                   });
                 });
               });
@@ -314,8 +324,8 @@ switch (args[0]) {
             return;
           }
 
-          var hex = csscolors[s] || s;
-          var rgb = hex2rgb(hex);
+          const hex = csscolors[s] || s;
+          const rgb = hex2rgb(hex);
 
           l.forEach(function (id) {
             client.rgb(id, rgb[0], rgb[1], rgb[2], callback(id));
@@ -332,7 +342,7 @@ switch (args[0]) {
             if (json) return console.log(JSON.stringify(err || null, 2));
             if (err) return console.error(`${lightName} failed: ${err.description}`);
             if(args[2] === "on" || args[2] === "off") {
-              console.log(`${lightName} was turned ${lightState.on ? "on" : "off"}`);
+              console.log(`${lightState.on ? "💡" : "🌑"} ${lightName} was turned ${lightState.on ? "on" : "off"}`);
             } else if (args[2] === "reset"){
               console.log(`${lightName} reset to default state`);
             } else if (args[2] === "colorloop") {
@@ -341,6 +351,8 @@ switch (args[0]) {
               console.log(`${lightName} alert started`);
             } else if (args[2] === "clear") {
               console.log(`${lightName} effects cleared`);
+            } else if (args[2] === "state") {
+              console.log(`${lightName} state changed`);
             } else {
               console.log(`${lightName} color changed`);
             }
@@ -352,7 +364,7 @@ switch (args[0]) {
     break;
   case "register": // register this app
     // Check for existing config
-    var existingconfig = statPath(configfile);
+    const existingconfig = statPath(configfile);
     if (existingconfig && existingconfig.isFile()) {
       console.log(`A config file already exists at ${configfile}`);
       console.log("please remove it before attempting to register a new hub");
@@ -372,7 +384,7 @@ switch (args[0]) {
       config.username = resp[0].success.username;
 
       // writing config file
-      var s = JSON.stringify(config, null, 2);
+      const s = JSON.stringify(config, null, 2);
       fs.writeFileSync(configfile, s + "\n");
       console.log(`config file written to ${configfile}`);
     });
@@ -384,7 +396,7 @@ switch (args[0]) {
     } else if (args.length == 3) {
       config.alias[args[1]] = args[2];
       // writing config file
-      var s = JSON.stringify(config, null, 2);
+      const s = JSON.stringify(config, null, 2);
       fs.writeFileSync(configfile, s + "\n");
       console.log(`config in ${configfile} updated`);
     } else {
@@ -395,7 +407,9 @@ switch (args[0]) {
   case "search": // search for base stations
     Hue.discover(function (stations) {
       if (json) return console.log(JSON.stringify(stations, null, 2));
-      if (stations.length === 1) {
+      if (stations.length === 0) {
+        console.log("No stations found. Check your network connection.");
+      } else if (stations.length === 1) {
         console.log(`1 station found: ${stations[0]}`);
       } else {
         console.log(`${stations.length} stations found: \n`);
@@ -435,7 +449,7 @@ function getclient() {
   }
 
   // create the client
-  var client = Hue.createClient({
+  const client = Hue.createClient({
     stationIp: config.host,
     appName: app,
     username: config.username,
@@ -465,7 +479,7 @@ function getlights(client, cb) {
 // convert a 3 or 6 character hex string to rgb
 function hex2rgb(hex) {
   if (hex[0] === "#") hex = hex.slice(1);
-  var r, g, b;
+  let r, g, b;
 
   if (hex.length === 3) {
     r = todec(hex[0], hex[0]);

@@ -1,6 +1,7 @@
 # hue(1)
 
 A command line interface to [philips hue](http://meethue.com)
+Forked from bahamas10/hue-cli by @bahamas10
 
 ## Installation
 
